@@ -6,7 +6,7 @@ Cvek is an unofficial open source eAsistent app aiming to bring better user expe
 It does not include any trackers whatsoever, so bug submissions and contributions are always welcome.
 
 ## Future plans / TODOs
-- [ ] Schedule with calendar for monthly event view
+- [ ] Schedule with calendar for monthly overview
 - [ ] Grade tracking
 - [ ] Reported student absences
 - [ ] Messsage overview (not as likely as it requires HTML scraping)
