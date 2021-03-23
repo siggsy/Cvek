@@ -32,7 +32,20 @@ fun getCurrentUserId(context: Context) : String? {
 }
 
 /**
- * Returns stored user token. There is no grantee that the token is not exipred
+ * Sets current "default" user
+ *
+ * @param context  Application context.
+ * @param userId  User id/username of a user.
+ */
+fun setCurrentUserId(context: Context, userId: String) {
+    val preferences = context.getSharedPreferences(USER_IDS, Context.MODE_PRIVATE)
+    preferences.edit()
+            .putString(CURRENT_USER, userId)
+            .apply()
+}
+
+/**
+ * Returns stored user token. There is no grantee that the token is not exipred.
  *
  * @param context  Application context.
  * @param userId  User Id/username of a user. Defaults to current active user ID.
