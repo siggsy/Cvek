@@ -49,8 +49,8 @@ dependencies {
     // Libraries for web querying
     implementation 'org.jsoup:jsoup:1.13.1'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.8.0'
-    implementation 'com.github.franmontiel:PersistentCookieJar:v1.0.1'
     implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.github.franmontiel:PersistentCookieJar:v1.0.1'
 
     // Android Room
     def room_version = "2.2.6"
