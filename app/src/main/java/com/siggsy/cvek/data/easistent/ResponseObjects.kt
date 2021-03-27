@@ -122,8 +122,14 @@ data class Week(
         @SerializedName("departments") val departments: List<Department>,
         @SerializedName("classroom") val classroom: Classroom?,
         @SerializedName("teachers") val teachers: List<Grades.Teacher?>,
-        @SerializedName("groups") val groups: List<Subject>
-    )
+        @SerializedName("groups") val groups: List<Subject>,
+        @SerializedName("videokonferenca") val videoConference: VideoConference
+    ) {
+        data class VideoConference(
+            @SerializedName("id") val id: Int?,
+            @SerializedName("link") var href: String?
+        )
+    }
     data class Event(
         @SerializedName("id") val id: Int,
         @SerializedName("date") val date: String,
