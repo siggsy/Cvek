@@ -1,6 +1,7 @@
 package com.siggsy.cvek.data.easistent
 
 import android.content.Context
+import android.util.Log
 import com.franmontiel.persistentcookiejar.PersistentCookieJar
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor
@@ -265,12 +266,12 @@ class EasistentApi (
         // Convert params to url string.
         val paramsString = params?.map {
             "${it.key}=${it.value}"
-        }?.joinToString("&") ?: ""
+        }?.joinToString("&")
 
         // Create request body
         val request = Request.Builder()
             .headers(apiHeaders)
-            .url("$URL$url$paramsString")
+            .url(if (paramsString.isNullOrBlank()) "$URL$url" else "$URL$url?$paramsString")
             .build()
 
         // Return JSON object.

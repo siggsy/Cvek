@@ -5,55 +5,66 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
+import android.widget.Scroller
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
+import androidx.fragment.app.FragmentPagerAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
+import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager.widget.PagerAdapter
+import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
 import com.siggsy.cvek.R
 import com.siggsy.cvek.data.easistent.Week
 import java.time.LocalDate
+import java.time.Period
+import java.time.temporal.ChronoUnit
 
 val MIN = LocalDate.of(1970, 1, 1)
 val MAX = LocalDate.of(2100, 1, 1)
-val MAX_COUNT = MIN.until(MAX).days
+val MAX_COUNT = ChronoUnit.DAYS.between(MIN, MAX).toInt()
 
 fun setupScheduleView(
-        viewPager: ViewPager2,
-        day: LocalDate,
-        onDayChanged: (ScheduleDayAdapter, LocalDate) -> Unit
-) : ViewPager2 {
+    viewPager: ViewPager,
+    day: LocalDate,
+    onDayChanged: (ScheduleDayAdapter, LocalDate) -> Unit
+) : ViewPager {
 
     viewPager.adapter = ScheduleAdapter(onDayChanged)
-    viewPager.currentItem = MIN.until(day).days
+    val between: Int = ChronoUnit.DAYS.between(MIN, day).toInt()
+    viewPager.currentItem = between
+    viewPager.offscreenPageLimit = 3
     return viewPager
 
 }
 
 private class ScheduleAdapter(
         val onDayChanged: (ScheduleDayAdapter, LocalDate) -> Unit
-) : RecyclerView.Adapter<ScheduleAdapter.ViewHolder>() {
+) : PagerAdapter() {
 
-    class ViewHolder (
-            itemView: View,
-    ) : RecyclerView.ViewHolder(itemView) {
-        val rv: RecyclerView = itemView as RecyclerView
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun instantiateItem(parent: ViewGroup, position: Int): Any {
         val rv = RecyclerView(parent.context)
         rv.layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, RecyclerView.LayoutParams.MATCH_PARENT)
         rv.adapter = ScheduleDayAdapter(onDayChanged)
+        (rv.adapter as ScheduleDayAdapter).day = position
         rv.layoutManager = LinearLayoutManager(parent.context)
-        return ViewHolder(rv)
+        parent.addView(rv)
+        return rv
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        (holder.rv.adapter as ScheduleDayAdapter).day = position
+    override fun destroyItem(parent: ViewGroup, position: Int, `object`: Any) {
+        parent.removeView(`object` as RecyclerView)
     }
 
-    override fun getItemCount(): Int = MAX_COUNT
+    override fun getCount(): Int = MAX_COUNT
+
+    override fun isViewFromObject(view: View, `object`: Any): Boolean = view == `object`
 
 }
 
@@ -88,6 +99,7 @@ class ScheduleDayAdapter (
         val videoConference: TextView = itemView.findViewById(R.id.video_conferece_tv)
         val grading: LinearLayout = itemView.findViewById(R.id.grading_ll)
         val gradingTv: TextView = itemView.findViewById(R.id.grading_tv)
+        val divider: View = itemView.findViewById(R.id.divider)
         val hour: TextView = itemView.findViewById(R.id.hour_num_tv)
     }
 
@@ -106,25 +118,42 @@ class ScheduleDayAdapter (
         holder.grading.visibility = if (event.grading) View.VISIBLE else View.GONE
         holder.time.text = "${event.timeFrom} - ${event.timeTo}"
         holder.title.text = event.title
+        if (event.eventType == EventType.BREAK) {
+            val drawable = ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_break)
+            drawable?.setTint(textColor(event.color))
+            holder.title.setCompoundDrawablesWithIntrinsicBounds(null, null, drawable, null)
+        } else {
+            holder.title.setCompoundDrawables(null, null, null, null)
+        }
         holder.teacher.text = event.teacher
         holder.location.text = event.location
+        holder.teacher.visibility = if (event.teacher.isBlank()) View.GONE else View.VISIBLE
+        holder.location.visibility = if (event.location.isBlank()) View.GONE else View.VISIBLE
+
         if (event.videoConference != null) {
             holder.videoConference.visibility = View.VISIBLE
-            holder.videoConference.text = event.videoConference
         } else holder.videoConference.visibility = View.GONE
         holder.hour.text = event.hour
         holder.hour.visibility = if (event.showHour) View.VISIBLE else View.GONE
 
         // Colorize event
-        holder.background.setBackgroundColor(backgroundColor(event.color))
-        holder.time.setTextColor(textColor(event.color))
-        holder.title.setTextColor(textColor(event.color))
-        holder.teacher.setTextColor(textColor(event.color))
-        holder.location.setTextColor(textColor(event.color))
-        holder.videoConference.setTextColor(textColor(event.color))
-        holder.videoConference.compoundDrawables[0].setTint(textColor(event.color))
-        holder.gradingTv.setTextColor(textColor(event.color))
-        holder.gradingTv.compoundDrawables[0].setTint(textColor(event.color))
+
+        val textColor = textColor(event.color)
+        holder.background.setCardBackgroundColor(backgroundColor(event.color))
+        holder.time.setTextColor(textColor)
+        holder.title.setTextColor(textColor)
+        holder.teacher.setTextColor(textColor)
+        holder.location.setTextColor(textColor)
+        holder.videoConference.setTextColor(textColor)
+
+        val conferenceIcon = ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_video_conference)
+        conferenceIcon?.setTint(textColor)
+        holder.videoConference.setCompoundDrawablesWithIntrinsicBounds(conferenceIcon, null, null, null)
+        holder.gradingTv.setTextColor(textColor)
+        holder.divider.setBackgroundColor(backgroundColor(event.color))
+        val gradingIcon = ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_grade)
+        gradingIcon?.setTint(textColor)
+        holder.gradingTv.setCompoundDrawablesWithIntrinsicBounds(gradingIcon, null, null, null)
 
         if (event.eventType == EventType.ALLDAY) {
             holder.time.text = event.timeFrom
@@ -151,7 +180,7 @@ class ScheduleDayAdapter (
                     event.location?.name ?: "",
                     null,
                     false,
-                    Color.YELLOW,
+                    0xFFFFA500.toInt(),
                     EventType.ALLDAY
                 )
             )
@@ -171,7 +200,7 @@ class ScheduleDayAdapter (
                         schoolEvent.classroom?.name ?: "",
                         if (schoolEvent.videoConference.id == null) null else schoolEvent.videoConference.href ?: "",
                         schoolEvent.hourSpecialType == "exam",
-                        Color.parseColor(schoolEvent.color),
+                        ColorUtils.blendARGB(Color.parseColor(schoolEvent.color), Color.BLACK, 0.1f),
                         EventType.NORMAL
                     )
                 )
@@ -190,29 +219,31 @@ class ScheduleDayAdapter (
                         event.location?.name ?: "",
                         null,
                         false,
-                        Color.YELLOW,
+                        0xFFFFA500.toInt(),
                         EventType.SPECIAL
                     )
                 )
             }
 
-            week.timeTable.forEach { timeItem ->
-                if (timeItem.type == "break") {
-                    events.add(
-                        Event(
-                            "",
-                            false,
-                            timeItem.time.from,
-                            timeItem.time.to,
-                            "Break",
-                            "",
-                            "",
-                            null,
-                            false,
-                            0x673AB7,
-                            EventType.BREAK
+            if (events.isNotEmpty()) {
+                week.timeTable.forEach { timeItem ->
+                    if (timeItem.type == "break") {
+                        events.add(
+                                Event(
+                                        "",
+                                        false,
+                                        timeItem.time.from,
+                                        timeItem.time.to,
+                                        "Break",
+                                        "",
+                                        "",
+                                        null,
+                                        false,
+                                        0xFF673AB7.toInt(),
+                                        EventType.BREAK
+                                )
                         )
-                    )
+                    }
                 }
             }
 
@@ -235,8 +266,7 @@ class ScheduleDayAdapter (
     }
 
     private fun backgroundColor(color: Int): Int {
-        // TODO normalize main color for background
-        return color
+        return color and 0xFFFFFF or 0x10000000
     }
 
     private fun textColor(color: Int): Int {
