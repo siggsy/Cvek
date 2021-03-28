@@ -16,6 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
 import org.jsoup.Jsoup
+import java.io.IOException
+import java.lang.Exception
 import java.lang.NullPointerException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -112,11 +114,12 @@ class EasistentApi (
          * @param task  Callback which runs API calls.
          * @param invalidCredentials  Callback that is executed when user credentials are invalid.
          */
-        suspend fun expirableTokenSafeRun(
+        suspend fun taskSafeRun(
             context: Context,
             easistentApi: EasistentApi,
             task: suspend (EasistentApi) -> Unit,
-            invalidCredentials: () -> Unit
+            invalidCredentials: () -> Unit,
+            ioError: () -> Unit
         ) {
             try {
                 task(easistentApi)
@@ -126,7 +129,11 @@ class EasistentApi (
                     task(refreshedApi)
                 } catch (e: TokenQueryFailed) {
                     invalidCredentials()
+                } catch (e: IOException) {
+                    ioError()
                 }
+            } catch (e: IOException) {
+                ioError()
             }
         }
 
@@ -258,6 +265,7 @@ class EasistentApi (
     /**
      * Returns a JSON serialized object from a specified sub-url call
      */
+    @Suppress("BlockingMethodInNonBlockingContext")
     private suspend inline fun <reified T> apiCall(
         url: String,
         params: Map<String, String>? = null
@@ -275,10 +283,21 @@ class EasistentApi (
             .build()
 
         // Return JSON object.
-        try {
-            fromJson(client.newCall(request).execute().body!!.string()) as T
-        } catch (e: NullPointerException) {
-            throw EmptyResponseBodyException()
+        val response = client.newCall(request).execute()
+        val body = response.body
+        val responseString = body?.string()
+        response.close()
+
+        when {
+            responseString?.contains("InvalidCredentials") == true -> {
+                throw InvalidTokenError()
+            }
+            responseString.isNullOrBlank() -> {
+                throw EmptyResponseBodyException()
+            }
+            else -> {
+                fromJson(responseString) as T
+            }
         }
 
     }
