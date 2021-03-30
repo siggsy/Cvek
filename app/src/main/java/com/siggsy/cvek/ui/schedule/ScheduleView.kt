@@ -1,46 +1,52 @@
 package com.siggsy.cvek.ui.schedule
 
-import android.app.ActionBar
+import android.content.Context
 import android.graphics.Color
+import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
-import android.widget.Scroller
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import androidx.fragment.app.FragmentPagerAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.LinearSmoothScroller
-import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
-import androidx.viewpager2.widget.ViewPager2
 import com.siggsy.cvek.R
 import com.siggsy.cvek.data.easistent.Week
 import java.time.LocalDate
-import java.time.Period
 import java.time.temporal.ChronoUnit
 
 val MIN = LocalDate.of(1970, 1, 1)
 val MAX = LocalDate.of(2100, 1, 1)
-val MAX_COUNT = ChronoUnit.DAYS.between(MIN, MAX).toInt()
+val MAX_DAYS = ChronoUnit.DAYS.between(MIN, MAX).toInt()
 
-fun setupScheduleView(
-    viewPager: ViewPager,
-    day: LocalDate,
-    onDayChanged: (ScheduleDayAdapter, LocalDate) -> Unit
-) : ViewPager {
 
-    viewPager.adapter = ScheduleAdapter(onDayChanged)
-    val between: Int = ChronoUnit.DAYS.between(MIN, day).toInt()
-    viewPager.currentItem = between
-    viewPager.offscreenPageLimit = 3
-    return viewPager
+
+class ScheduleView : ViewPager {
+
+    private val TAG = ScheduleView::class.java.name
+    var onDataRequested: (ScheduleDayAdapter, LocalDate) -> Unit = {_,_ ->}
+        set(value) {
+            field = value
+            adapter = ScheduleAdapter(field)
+        }
+    var day = MIN
+        set(value) {
+            field = value
+            currentItem = ChronoUnit.DAYS.between(MIN, field).toInt()
+        }
+
+    init {
+        offscreenPageLimit = 3
+    }
+
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attributes: AttributeSet?) : super(context, attributes)
 
 }
 
@@ -62,7 +68,7 @@ private class ScheduleAdapter(
         parent.removeView(`object` as RecyclerView)
     }
 
-    override fun getCount(): Int = MAX_COUNT
+    override fun getCount(): Int = MAX_DAYS
 
     override fun isViewFromObject(view: View, `object`: Any): Boolean = view == `object`
 
