@@ -2,7 +2,7 @@
 eAsistent open source android app
 
 ## About
-Cvek is an unofficial open source eAsistent app aiming to bring better user experience to not premium users.
+Cvek is an unofficial open source eAsistent app aiming to bring better user experience to non premium users.
 It does not include any trackers whatsoever, so bug submissions and contributions are always welcome.
 
 ## Future plans / TODOs
