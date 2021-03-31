@@ -18,9 +18,7 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 import java.time.format.TextStyle
-import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalField
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -28,7 +26,7 @@ val MAX_MONTHS = ChronoUnit.MONTHS.between(MIN, MAX).toInt()
 class CalendarView : ViewPager {
 
     init {
-        adapter = MonthAdapter(false) {}
+        adapter = MonthAdapter(true) {}
         offscreenPageLimit = 3
     }
 
@@ -58,13 +56,17 @@ private class MonthAdapter(
         gridLayout.columnCount = 7
         val allViews = ArrayList<View>()
 
-        val date = MIN.plusMonths(position.toLong())
-            allViews.add(getMonthNameView(parent.context, date.month.value))
+        if (week) {
+            val weekOffsetDate = MIN.plusWeeks(position.toLong())
+            allViews.add(getMonthNameView(parent.context, weekOffsetDate.month.value))
             allViews.addAll(getWeekNameViews(parent.context))
-            allViews.addAll(
-                    if (week) getWeekDayViews(parent.context, position)
-                    else getMonthDayViews(parent.context, position)
-            )
+            allViews.addAll(getWeekDayViews(parent.context, weekOffsetDate))
+        } else {
+            val monthOffsetDate = MIN.plusMonths(position.toLong())
+            allViews.add(getMonthNameView(parent.context, monthOffsetDate.month.value))
+            allViews.addAll(getWeekNameViews(parent.context))
+            allViews.addAll(getWeekDayViews(parent.context, monthOffsetDate))
+        }
         allViews.forEach { gridLayout.addView(it) }
         parent.addView(gridLayout)
         return gridLayout
@@ -88,12 +90,11 @@ private class MonthAdapter(
             layoutParams = layoutParamsNew
         }
     }
-    private fun getMonthDayViews(context: Context, month: Int) : List<View> {
+    private fun getMonthDayViews(context: Context, selectedDate: LocalDate) : List<View> {
 
-        val date = MIN.plusMonths(month.toLong())
-        val prevMonthDays = YearMonth.of(date.year, date.month - 1).lengthOfMonth()
-        val currMonthDays = YearMonth.of(date.year, date.month).lengthOfMonth()
-        val diff = date.dayOfWeek.value - 1
+        val prevMonthDays = YearMonth.of(selectedDate.year, selectedDate.month - 1).lengthOfMonth()
+        val currMonthDays = YearMonth.of(selectedDate.year, selectedDate.month).lengthOfMonth()
+        val diff = selectedDate.dayOfWeek.value - 1
 
         val days = ArrayList<View>()
 
@@ -125,12 +126,24 @@ private class MonthAdapter(
             }
         }
     }
-    private fun getWeekDayViews(context: Context, week: Int) : List<View> {
-        val date = MIN.plusWeeks(week.toLong()).minusDays(MIN.dayOfWeek.value - 1.toLong())
-        val currMonth = date.month
-        val currMonthDays = YearMonth.of(date.year, date.month).lengthOfMonth()
+    private fun getWeekDayViews(context: Context, selectedDate: LocalDate) : List<View> {
+        val days = ArrayList<View>()
+        val monday = selectedDate.minusDays(MIN.dayOfWeek.value - 1.toLong())
+        val currMonth = selectedDate.month == monday.month
+        val mondayMonthDays = YearMonth.of(monday.year, monday.month).lengthOfMonth()
+        val nextMonthDays = YearMonth.of(monday.year, monday.month + 1).lengthOfMonth()
 
-        return emptyList()
+        if (mondayMonthDays - monday.dayOfMonth >= 6)
+            for (day in monday.dayOfMonth..monday.dayOfMonth + 6)
+                days.add(getDayView(context, day, currMonth))
+        else {
+            for (day in monday.dayOfMonth..mondayMonthDays)
+                days.add(getDayView(context, day, currMonth))
+            for (day in 1 .. 6 - mondayMonthDays + monday.dayOfMonth)
+                days.add(getDayView(context, day, !currMonth))
+        }
+
+        return days
     }
 
     private fun getDayView(context: Context, day: Int, currentMonth: Boolean, color: Int = 0xFF673AB7.toInt(), event: Boolean = false) : View {
