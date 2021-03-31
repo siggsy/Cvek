@@ -7,8 +7,8 @@
     android:layout_height="match_parent"
     tools:context=".ui.TestActivity">
 
-    <com.siggsy.cvek.ui.schedule.CalendarView
-        android:id="@+id/calendar_view"
+    <com.siggsy.cvek.ui.schedule.ScheduleView
+        android:id="@+id/schedule_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"

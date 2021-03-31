@@ -34,6 +34,7 @@ class ScheduleView : ViewPager {
         set(value) {
             field = value
             adapter = ScheduleAdapter(field)
+            currentItem = ChronoUnit.DAYS.between(MIN, day).toInt()
         }
     var day = MIN
         set(value) {
