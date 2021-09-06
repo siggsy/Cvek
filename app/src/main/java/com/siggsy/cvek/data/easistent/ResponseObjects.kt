@@ -1,6 +1,7 @@
 package com.siggsy.cvek.data.easistent
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -9,215 +10,200 @@ import kotlin.collections.ArrayList
  * File for JSON to Kotlin object mapping
  */
 
-// TODO: find all possible null values
+@Serializable
+data class RefreshResponse(
+    @SerialName("access_token") val accessToken: AccessToken,
+    @SerialName("refresh_token") val refreshToken: String
+)
+
+@Serializable
+data class AccessToken(
+    @SerialName("token") val token: String,
+    @SerialName("expiration_date") val expirationDate: String
+)
+
 data class Absences(
-    @SerializedName("summary") val summary: Summary,
-    @SerializedName("items") val days: List<Days>
+    @SerialName("summary") val summary: Summary,
+    @SerialName("items") val days: List<Days>
 ) {
     data class Summary(
-        @SerializedName("excused_hours") val excusedHours: Int,
-        @SerializedName("unexcused_hours") val unexcusedHours: Int,
-        @SerializedName("unmanaged_absences") val unmanaged_absences: Int,
-        @SerializedName("erased") val erased: Int
+        @SerialName("excused_hours") val excusedHours: Int,
+        @SerialName("unexcused_hours") val unexcusedHours: Int,
+        @SerialName("unmanaged_absences") val unmanaged_absences: Int,
+        @SerialName("erased") val erased: Int
     )
     data class Hours(
-        @SerializedName("class_name") val className: String,
-        @SerializedName("class_short_name") val classShortName: String,
-        @SerializedName("value") val value: String,
-        @SerializedName("from") val from: String,
-        @SerializedName("to") val to: String,
-        @SerializedName("state") val state: String?
+        @SerialName("class_name") val className: String,
+        @SerialName("class_short_name") val classShortName: String,
+        @SerialName("value") val value: String,
+        @SerialName("from") val from: String,
+        @SerialName("to") val to: String,
+        @SerialName("state") val state: String?
     )
     data class Days(
-        @SerializedName("id") val id: Int,
-        @SerializedName("date") val date: String,
-        @SerializedName("missing_count") val missingCount: Int,
-        @SerializedName("excused_count") val excusedCount: Int,
-        @SerializedName("not_excused_count") val notExcusedCount: Int,
-        @SerializedName("erased_count") val erasedCount: Int,
-        @SerializedName("hours") val hours: List<Hours>,
-        @SerializedName("state") val state: String
+        @SerialName("id") val id: Int,
+        @SerialName("date") val date: String,
+        @SerialName("missing_count") val missingCount: Int,
+        @SerialName("excused_count") val excusedCount: Int,
+        @SerialName("not_excused_count") val notExcusedCount: Int,
+        @SerialName("erased_count") val erasedCount: Int,
+        @SerialName("hours") val hours: List<Hours>,
+        @SerialName("state") val state: String
     )
 }
 
-data class Message(
-    val id: String,
-    val sender: String,
-    val title: String,
-    val time_date: String,
-    val hint: String,
-    var open: Boolean
-) {
-    data class Content(
-        val title: String,
-        val sender_name: String,
-        val sender_email: String,
-        val date_hour: String,
-        val content: String,
-        val replyTo: String,
-        val attachments: List<Attachment>
-    ) {
-        data class Attachment(
-            val href: String,
-            val shownName: String,
-            val applicationOpener: String,
-            val fileSize: String
-        )
-    }
-}
-
-data class NextMarkings(@SerializedName("items") val items: List<Item>) {
+data class NextMarkings(@SerialName("items") val items: List<Item>) {
     data class Item(
-        @SerializedName("id") val id: Int,
-        @SerializedName("course") val course: String,
-        @SerializedName("subject") val subject: String,
-        @SerializedName("type") val type: String,
-        @SerializedName("grade") val grade: String?,
-        @SerializedName("date") val date: String,
-        @SerializedName("period") val period: String,
-        @SerializedName("type_name") val typeName: String
+        @SerialName("id") val id: Int,
+        @SerialName("course") val course: String,
+        @SerialName("subject") val subject: String,
+        @SerialName("type") val type: String,
+        @SerialName("grade") val grade: String?,
+        @SerialName("date") val date: String,
+        @SerialName("period") val period: String,
+        @SerialName("type_name") val typeName: String
     )
 }
 
-data class PraisesAndImprovements(@SerializedName("items") val items: List<Item>) {
+data class PraisesAndImprovements(@SerialName("items") val items: List<Item>) {
     data class Item(
-        @SerializedName("author") val author: String,
-        @SerializedName("category") val category: String,
-        @SerializedName("course") val course: String,
-        @SerializedName("course_id") val courseId: Int,
-        @SerializedName("date") val date: String,
-        @SerializedName("event_type") val eventType: String,
-        @SerializedName("id") val id: Int,
-        @SerializedName("text") val text: String,
-        @SerializedName("type") val type: String
+        @SerialName("author") val author: String,
+        @SerialName("category") val category: String,
+        @SerialName("course") val course: String,
+        @SerialName("course_id") val courseId: Int,
+        @SerialName("date") val date: String,
+        @SerialName("event_type") val eventType: String,
+        @SerialName("id") val id: Int,
+        @SerialName("text") val text: String,
+        @SerialName("type") val type: String
     )
 }
 
 data class Week(
-    @SerializedName("time_table") val timeTable: List<TimeTable>,
-    @SerializedName("day_table") val dayTable: List<DayTable>,
-    @SerializedName("school_hour_events") val schoolHourEvents: List<SchoolHourEvent>,
-    @SerializedName("events") val events: List<Event>,
-    @SerializedName("all_day_events") val allDayEvents: List<AllDayEvent>
+    @SerialName("time_table") val timeTable: List<TimeTable>,
+    @SerialName("day_table") val dayTable: List<DayTable>,
+    @SerialName("school_hour_events") val schoolHourEvents: List<SchoolHourEvent>,
+    @SerialName("events") val events: List<Event>,
+    @SerialName("all_day_events") val allDayEvents: List<AllDayEvent>
 ) {
     data class TimeTable(
-        @SerializedName("id") val id: Int,
-        @SerializedName("name") val name: String,
-        @SerializedName("name_short") val nameShort: String,
-        @SerializedName("time") val time: Time,
-        @SerializedName("type") val type: String
+        @SerialName("id") val id: Int,
+        @SerialName("name") val name: String,
+        @SerialName("name_short") val nameShort: String,
+        @SerialName("time") val time: Time,
+        @SerialName("type") val type: String
     )
     data class DayTable(
-        @SerializedName("name") val name: String,
-        @SerializedName("short_name") val shortName: String,
-        @SerializedName("date") val date: String
+        @SerialName("name") val name: String,
+        @SerialName("short_name") val shortName: String,
+        @SerialName("date") val date: String
     )
     data class SchoolHourEvent(
-        @SerializedName("time") val time: TimeID,
-        @SerializedName("event_id") val eventId: Int,
-        @SerializedName("color") val color: String,
-        @SerializedName("subject") val subject: Subject,
-        @SerializedName("completed") val completed: Boolean,
-        @SerializedName("hour_special_type") val hourSpecialType: String?,
-        @SerializedName("departments") val departments: List<Department>,
-        @SerializedName("classroom") val classroom: Classroom?,
-        @SerializedName("teachers") val teachers: List<Grades.Teacher?>,
-        @SerializedName("groups") val groups: List<Subject>,
-        @SerializedName("videokonferenca") val videoConference: VideoConference
+        @SerialName("time") val time: TimeID,
+        @SerialName("event_id") val eventId: Int,
+        @SerialName("color") val color: String,
+        @SerialName("subject") val subject: Subject,
+        @SerialName("completed") val completed: Boolean,
+        @SerialName("hour_special_type") val hourSpecialType: String?,
+        @SerialName("departments") val departments: List<Department>,
+        @SerialName("classroom") val classroom: Classroom?,
+        @SerialName("teachers") val teachers: List<Grades.Teacher?>,
+        @SerialName("groups") val groups: List<Subject>,
+        @SerialName("videokonferenca") val videoConference: VideoConference
     ) {
         data class VideoConference(
-            @SerializedName("id") val id: Int?,
-            @SerializedName("link") var href: String?
+            @SerialName("id") val id: Int?,
+            @SerialName("link") var href: String?
         )
     }
     data class Event(
-        @SerializedName("id") val id: Int,
-        @SerializedName("date") val date: String,
-        @SerializedName("time") val time: Time,
-        @SerializedName("location") val location: Location?,
-        @SerializedName("teachers") val teachers: List<Grades.Teacher?>?,
-        @SerializedName("name") val name: String,
-        @SerializedName("event_type") val eventType: Int
+        @SerialName("id") val id: Int,
+        @SerialName("date") val date: String,
+        @SerialName("time") val time: Time,
+        @SerialName("location") val location: Location?,
+        @SerialName("teachers") val teachers: List<Grades.Teacher?>?,
+        @SerialName("name") val name: String,
+        @SerialName("event_type") val eventType: Int
     )
     data class AllDayEvent(
-        @SerializedName("id") val id: Int,
-        @SerializedName("date") val date: String,
-        @SerializedName("location") val location: Location?,
-        @SerializedName("teachers") val teachers: List<Grades.Teacher?>?,
-        @SerializedName("name") val name: String,
-        @SerializedName("event_type") val eventType: Int
+        @SerialName("id") val id: Int,
+        @SerialName("date") val date: String,
+        @SerialName("location") val location: Location?,
+        @SerialName("teachers") val teachers: List<Grades.Teacher?>?,
+        @SerialName("name") val name: String,
+        @SerialName("event_type") val eventType: Int
     )
     data class Time(
-        @SerializedName("from") val from: String,
-        @SerializedName("to") val to: String
+        @SerialName("from") val from: String,
+        @SerialName("to") val to: String
     )
     data class TimeID(
-        @SerializedName("from_id") val fromId: Int,
-        @SerializedName("to_id") val toId: Int,
-        @SerializedName("date") val date: String
+        @SerialName("from_id") val fromId: Int,
+        @SerialName("to_id") val toId: Int,
+        @SerialName("date") val date: String
     )
     data class Location(
-        @SerializedName("name") val name: String?,
-        @SerializedName("short_name") val shortName: String?
+        @SerialName("name") val name: String?,
+        @SerialName("short_name") val shortName: String?
     )
     data class Classroom(
-        @SerializedName("id") val id: String,
-        @SerializedName("name") val name: String?
+        @SerialName("id") val id: String,
+        @SerialName("name") val name: String?
     )
     data class Department(
-        @SerializedName("id") val id: String,
-        @SerializedName("name") val name: String
+        @SerialName("id") val id: String,
+        @SerialName("name") val name: String
     )
     data class Subject(
-        @SerializedName("id") val id: Int,
-        @SerializedName("name") val name: String
+        @SerialName("id") val id: Int,
+        @SerialName("name") val name: String
     )
 }
 
 data class Grades(
-    @SerializedName("id") val id: Int,
-    @SerializedName("value") val value: String,
-    @SerializedName("date") val date: String,
-    @SerializedName("average_grade") val averageGrade: String,
-    @SerializedName("grade_rank") val gradeRank: String
+    @SerialName("id") val id: Int,
+    @SerialName("value") val value: String,
+    @SerialName("date") val date: String,
+    @SerialName("average_grade") val averageGrade: String,
+    @SerialName("grade_rank") val gradeRank: String
 ) {
     data class FinalGrade(
-        @SerializedName("id") val id: Int,
-        @SerializedName("value") val value: String,
-        @SerializedName("date") val date: String,
-        @SerializedName("inserted_by") val insertedBy: Teacher
+        @SerialName("id") val id: Int,
+        @SerialName("value") val value: String,
+        @SerialName("date") val date: String,
+        @SerialName("inserted_by") val insertedBy: Teacher
     )
     data class NormalGrade(
-        @SerializedName("id") val id: Int,
-        @SerializedName("value") val value: String,
-        @SerializedName("date") val date: String,
-        @SerializedName("inserted_by") val insertedBy: Teacher?,
-        @SerializedName("type_name") val typeName: String,
-        @SerializedName("comment") val comment: String,
-        @SerializedName("overrides_ids") val overrideIds: List<Int>?,
-        @SerializedName("subject") val subject: String?,
-        @SerializedName("notified_at") val notifiedAt: String?,
-        @SerializedName("inserted_at") val insertedAt: String
+        @SerialName("id") val id: Int,
+        @SerialName("value") val value: String,
+        @SerialName("date") val date: String,
+        @SerialName("inserted_by") val insertedBy: Teacher?,
+        @SerialName("type_name") val typeName: String,
+        @SerialName("comment") val comment: String,
+        @SerialName("overrides_ids") val overrideIds: List<Int>?,
+        @SerialName("subject") val subject: String?,
+        @SerialName("notified_at") val notifiedAt: String?,
+        @SerialName("inserted_at") val insertedAt: String
     )
     data class Semester(
-        @SerializedName("id") val id: Int,
-        @SerializedName("grades") var grades: ArrayList<NormalGrade>,
-        @SerializedName("final_grade") var finalGrade: FinalGrade?
+        @SerialName("id") val id: Int,
+        @SerialName("grades") var grades: ArrayList<NormalGrade>,
+        @SerialName("final_grade") var finalGrade: FinalGrade?
     )
     data class Teacher(
-        @SerializedName("id") val id: Int,
-        @SerializedName("name") val name: String
+        @SerialName("id") val id: Int,
+        @SerialName("name") val name: String
     )
 }
 data class Subject(
-    @SerializedName("id") val id: Int,
-    @SerializedName("name") val name: String,
-    @SerializedName("short_name") val shortName: String,
-    @SerializedName("grade_type") val gradeType: String,
-    @SerializedName("final_grade") var finalGrade: Grades.FinalGrade?,
-    @SerializedName("average_grade") var averageGrade: String?,
-    @SerializedName("is_excused") val isExcused: Boolean,
-    @SerializedName("semesters") var semesters: ArrayList<Grades.Semester>?
+    @SerialName("id") val id: Int,
+    @SerialName("name") val name: String,
+    @SerialName("short_name") val shortName: String,
+    @SerialName("grade_type") val gradeType: String,
+    @SerialName("final_grade") var finalGrade: Grades.FinalGrade?,
+    @SerialName("average_grade") var averageGrade: String?,
+    @SerialName("is_excused") val isExcused: Boolean,
+    @SerialName("semesters") var semesters: ArrayList<Grades.Semester>?
 ) {
 
     fun getAllGrades(): ArrayList<Grades.NormalGrade> {
@@ -234,53 +220,53 @@ data class Subject(
 }
 
 data class UserPersonalData(
-    @SerializedName("id") val id: Int,
-    @SerializedName("short_name") val shortName: String,
-    @SerializedName("display_name") val displayName: String,
-    @SerializedName("gender") val gender: String,
-    @SerializedName("avatar") val avatar: String?,
-    @SerializedName("age_level") val ageLevel: String,
-    @SerializedName("language") val language: String,
-    @SerializedName("e_mail") val eMail: String,
-    @SerializedName("timetable") val timetable: Timetable,
-    @SerializedName("plus_enabled") val plusEnabled: Boolean,
-    @SerializedName("did_try_plus") val didTryPlus: Boolean
+    @SerialName("id") val id: Int,
+    @SerialName("short_name") val shortName: String,
+    @SerialName("display_name") val displayName: String,
+    @SerialName("gender") val gender: String,
+    @SerialName("avatar") val avatar: String?,
+    @SerialName("age_level") val ageLevel: String,
+    @SerialName("language") val language: String,
+    @SerialName("e_mail") val eMail: String,
+    @SerialName("timetable") val timetable: Timetable,
+    @SerialName("plus_enabled") val plusEnabled: Boolean,
+    @SerialName("did_try_plus") val didTryPlus: Boolean
 ) {
     data class Timetable(
-        @SerializedName("date") val date: String,
-        @SerializedName("hours") val hours: List<Hours>
+        @SerialName("date") val date: String,
+        @SerialName("hours") val hours: List<Hours>
     ) {
         data class Hours(
-            @SerializedName("type") val type: String,
-            @SerializedName("from") val from: String,
-            @SerializedName("to") val to: String,
-            @SerializedName("summary") val summary: String,
-            @SerializedName("course_type") val courseType: String
+            @SerialName("type") val type: String,
+            @SerialName("from") val from: String,
+            @SerialName("to") val to: String,
+            @SerialName("summary") val summary: String,
+            @SerialName("course_type") val courseType: String
         ) {
             data class Metadata(
-                @SerializedName("tomorrow_normal") val tomorrowNormal: Boolean,
-                @SerializedName("tomorrow_start") val tomorrowStart: String,
-                @SerializedName("tomorrow_end") val tomorrowEnd: String,
-                @SerializedName(" tomorrow_info") val tomorrowInfo: String
+                @SerialName("tomorrow_normal") val tomorrowNormal: Boolean,
+                @SerialName("tomorrow_start") val tomorrowStart: String,
+                @SerialName("tomorrow_end") val tomorrowEnd: String,
+                @SerialName(" tomorrow_info") val tomorrowInfo: String
             )
         }
     }
 }
 
 data class Homework(
-    @SerializedName("id") val id: Int,
-    @SerializedName("subject") val subject: String,
-    @SerializedName("title") val title: String,
-    @SerializedName("date") val date: String,
-    @SerializedName("deadline") val deadline: String
+    @SerialName("id") val id: Int,
+    @SerialName("subject") val subject: String,
+    @SerialName("title") val title: String,
+    @SerialName("date") val date: String,
+    @SerialName("deadline") val deadline: String
 )
 
 data class HomeworkDetailed(
-    @SerializedName("id") val id: Int,
-    @SerializedName("subject") val subject: String,
-    @SerializedName("title") val title: String,
-    @SerializedName("date") val date: String,
-    @SerializedName("deadline") val deadline: String,
-    @SerializedName("content") val content: String,
-    @SerializedName("author") val author: String
+    @SerialName("id") val id: Int,
+    @SerialName("subject") val subject: String,
+    @SerialName("title") val title: String,
+    @SerialName("date") val date: String,
+    @SerialName("deadline") val deadline: String,
+    @SerialName("content") val content: String,
+    @SerialName("author") val author: String
 )

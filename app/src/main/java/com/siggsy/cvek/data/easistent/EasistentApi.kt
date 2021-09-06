@@ -1,51 +1,25 @@
 package com.siggsy.cvek.data.easistent
 
-import android.util.Log
-import com.siggsy.cvek.utils.TimeManager
-import io.ktor.client.*
-import io.ktor.client.engine.android.*
-import io.ktor.client.features.*
-import io.ktor.client.features.cookies.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.logging.*
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.http.*
-import org.jsoup.Jsoup
+import com.siggsy.cvek.utils.getCurrentYear
+import com.siggsy.cvek.utils.jsonMedia
+import com.siggsy.cvek.utils.toJson
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.text.SimpleDateFormat
 import java.util.*
 
-const val URL = "https://www.easistent.com"
-
-val client = HttpClient(Android) {
-    install(JsonFeature) {
-        serializer = GsonSerializer()
-    }
-    HttpResponseValidator {
-        validateResponse { response ->
-            when(response.status.value) {
-                401 -> throw InvalidTokenError()
-            }
-        }
-    }
-    defaultRequest {
-        headers {
-            append("user-agent", "Mozilla/5.0")
-            append("accept", "application/json, text/html")
-            append("accept-language", "sl-SI,sl;q=0.9,en-GB;q=0.8,en;q=0.7,de;q=0.6")
-            append("x-client-platform", "web")
-            append("x-client-version", "13")
-            append("x-requested-with", "XMLHttpRequest")
-        }
-    }
-}
+const val URL = "https://www.easistent.com/m"
+const val LOGIN = "$URL/login"
+const val REFRESH_TOKEN = "$URL/refresh_token"
 
 /**
  * Do not forget to close client when app closes
  */
 class EasistentApi (
-        private val token: String,
-        private val childId: String,
+    private val httpClient: OkHttpClient,
 ) {
     private val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
@@ -75,7 +49,7 @@ class EasistentApi (
         )
     }
 
-    suspend fun getYearTimeTable(year: Int = TimeManager.getCurrentYear()): Week {
+    suspend fun getYearTimeTable(year: Int = Calendar.getInstance().getCurrentYear()): Week {
 
         val c = Calendar.getInstance()
 
@@ -114,87 +88,6 @@ class EasistentApi (
         return ids.toSet()
     }
 
-    companion object {
-
-        /**
-         * Returns EasistentApi instance from username and password
-         *
-         * @param username  User's username.
-         * @param password  User's password.
-         */
-        suspend fun getInstance(
-            username: String,
-            password: String,
-        ) : EasistentApi {
-            val (token, childId) = useCredentials(username, password)
-            return EasistentApi(token, childId)
-        }
-
-        private suspend fun useCredentials(
-            username: String,
-            password: String
-        ) : Pair<String, String> {
-            val loginClient = HttpClient(Android) {
-                install(HttpCookies) {
-                    storage = AcceptAllCookiesStorage()
-                }
-                defaultRequest {
-                    headers {
-                        append("user-agent", "Mozilla/5.0")
-                        append("accept", "application/json, text/javascript, */*; q=0.01")
-                        append("accept-language", "sl-SI,sl;q=0.9,en-GB;q=0.8,en;q=0.7,de;q=0.6")
-                        append("referer", "https://www.easistent.com/")
-                        append("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
-                    }
-                }
-                HttpResponseValidator {
-                    validateResponse { response ->
-                        when (response.status.value) {
-                            401 -> throw InvalidTokenError()
-                        }
-                    }
-                }
-            }
-
-            // Setup request body with username and password
-            val ajaxResponse: String = loginClient.submitForm(
-                Parameters.build {
-                    append("uporabnik", username)
-                    append("geslo", password)
-                    append("pin", "")
-                    append("captcha", "")
-                    append("koda", "")
-                },
-            ) {
-               url("$URL/p/ajax_prijava")
-               method = HttpMethod.Post
-            }
-
-            // Invalid username or password
-            if (!ajaxResponse.contains("\"status\":\"ok\"")) {
-                throw TokenQueryFailed()
-            }
-
-            val tokenRequest: String = loginClient.get("$URL/webapp")
-            loginClient.close()
-
-            // Get token and childId and return EasistentApi instance
-            val elements = Jsoup.parseBodyFragment(tokenRequest).allElements
-            var token: String? = null
-            var childID: String? = null
-            for (element in elements) {
-                val name: String = element.attr("name")
-                if (name == "access-token") token = element.attr("content")
-                if (name == "x-child-id") childID = element.attr("content")
-            }
-
-            if (token != null && childID != null) {
-                return Pair(token, childID)
-            } else throw TokenQueryFailed()
-        }
-
-    }
-
     /**
      * Returns a JSON serialized object from a specified sub-url call
      */
@@ -202,15 +95,15 @@ class EasistentApi (
         url: String,
         params: List<Pair<String, String>> = emptyList()
     ) : T {
-        return client.get(
+        return httpClient.get(
             if (params.isEmpty()) "$URL$url"
             else "$URL$url?${params.formUrlEncode()}"
         ) {
             headers {
-                append("x-child-id", childId)
-                append("authorization", token)
+                append("x-child-id", child)
             }
         }
     }
 
 }
+

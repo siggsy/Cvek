@@ -19,3 +19,19 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# kotlinx-serialization-json specific.
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+-keep,includedescriptorclasses class com.siggsy.cvek.**$$serializer { *; }
+-keepclassmembers class com.siggsy.cvek.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.siggsy.cvek.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
