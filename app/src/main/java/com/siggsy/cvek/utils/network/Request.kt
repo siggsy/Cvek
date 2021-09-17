@@ -9,13 +9,19 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 val jsonMedia = "application/json".toMediaType()
 
-fun Request.Builder.defaultHeaders() = apply {
+fun Request.Builder.defaultHeaders(authRequest: Boolean = false) = apply {
+    // Login requests require android platform
+    val (platform, version) = if (authRequest) {
+        Pair("android","99999")
+    } else {
+        Pair("web", "13")
+    }
+
     header("user-agent", "Mozilla/5.0")
     header("accept", "application/json, text/html")
     header("accept-language", "sl-SI,sl;q=0.9,en-GB;q=0.8,en;q=0.7,de;q=0.6")
-    header("x-client-platform", "web")
-    header("x-client-version", "13")
-    header("x-requested-with", "XMLHttpRequest")
+    header("x-client-platform", platform)
+    header("x-client-version", version)
     header("x-app-name", "family")
 }
 
@@ -32,6 +38,15 @@ fun String.toHttpUrl(vararg params: Pair<String, String>): HttpUrl {
     return builder.build()
 }
 
+fun String.toRequest(build: Request.Builder.() -> Unit = { }) =
+    Request.Builder()
+        .url(this)
+        .apply(build)
+        .build()
+
+fun String.addParams(vararg params: Pair<String, String>) =
+    "$this?${params.joinToString(separator = "&") { (key, value) -> "$key=$value" }}"
+
 inline fun <reified T> Request.Builder.post(body: T) = apply {
-    body.toJson().toRequestBody(jsonMedia)
+    post(body.toJson().toRequestBody(jsonMedia))
 }

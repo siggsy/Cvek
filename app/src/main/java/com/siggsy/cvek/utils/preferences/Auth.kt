@@ -15,7 +15,7 @@ data class User(
 
 class AuthPreferences(context: Context) : CvekPreferences(context, "AUTH") {
     var currentUserId: String by stringPreference("current_user")
-    var users: Map<String, User> by serializablePreference("users")
+    var users: Map<String, User> by serializablePreference("users") { mapOf() }
     var currentUser: User
         get() = users[currentUserId] ?: throw UserDoesNotExist()
         set(value) {

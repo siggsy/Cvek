@@ -23,9 +23,10 @@ open class PreferencesDelegate<T>(
     }
 
     override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
-        val editor = sharedPreferences.edit()
-        editor.store(value)
-        editor.apply()
+        with(sharedPreferences.edit()) {
+            store(value)
+            apply()
+        }
     }
 }
 
@@ -43,9 +44,9 @@ fun CvekPreferences.booleanPreference(key: String) =
         { this.getBoolean(key, false) }
     )
 
-inline fun <reified T> CvekPreferences.serializablePreference(key: String) =
-    PreferencesDelegate<T>(
+inline fun <reified T> CvekPreferences.serializablePreference(key: String, crossinline default: () -> T) =
+    PreferencesDelegate(
         sharedPreferences,
-        { this.putString(key, Json.encodeToString(it)) },
-        { Json.decodeFromString(this.getString(key, "") ?: "") }
+        { this.putString(key, it.toJson()) },
+        { this.getString(key, null)?.decodeJson() ?: default() }
     )

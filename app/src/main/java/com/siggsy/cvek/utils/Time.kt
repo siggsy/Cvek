@@ -3,6 +3,7 @@ package com.siggsy.cvek.utils
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 fun Calendar.getCurrentYear(): Int {
@@ -27,5 +28,6 @@ fun convertDate(dateString: String): Date {
     return dateOnly.parse(dateString)!!
 }
 
+val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssx")
 fun String.toDate(): LocalDateTime =
-    LocalDateTime.parse(this)
+    LocalDateTime.parse(this, formatter)

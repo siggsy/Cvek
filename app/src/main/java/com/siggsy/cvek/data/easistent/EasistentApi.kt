@@ -1,14 +1,12 @@
 package com.siggsy.cvek.data.easistent
 
 import com.siggsy.cvek.utils.getCurrentYear
-import com.siggsy.cvek.utils.jsonMedia
-import com.siggsy.cvek.utils.toJson
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import com.siggsy.cvek.utils.network.*
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 const val URL = "https://www.easistent.com/m"
@@ -18,92 +16,72 @@ const val REFRESH_TOKEN = "$URL/refresh_token"
 /**
  * Do not forget to close client when app closes
  */
-class EasistentApi (
-    private val httpClient: OkHttpClient,
-) {
-    private val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-    suspend fun getAbsences(): Absences {
-        return apiCall("/m/absences")
-    }
+private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-    suspend fun getFutureEvaluations(): NextMarkings {
-        return apiCall("/m/evaluations?filter=future")
-    }
+suspend fun OkHttpClient.login(username: String, password: String): BodyResponse<LoginResponse> =
+    await(LOGIN.toRequest {
+        defaultHeaders(authRequest = true)
+        post(LoginRequest(username, password, listOf("child")))
+    })
+suspend fun OkHttpClient.getAbsences(): BodyResponse<Absences> = await("$URL/absences".toRequest())
+suspend fun OkHttpClient.getFutureEvaluations(): BodyResponse<NextMarkings> = await("$URL/evaluations?filter=future".toRequest())
+suspend fun OkHttpClient.getPraisesAndImprovements(): BodyResponse<PraisesAndImprovements> = await("$URL/praises_and_improvements".toRequest())
+suspend fun OkHttpClient.getGrades(subjectId: String): BodyResponse<Subject> = await("$URL/grades/classes/$subjectId".toRequest())
+suspend fun OkHttpClient.getTimeTable(dateFrom: LocalDate, dateTo: LocalDate): BodyResponse<Week> = await(
+        "$URL/timetable/weekly".addParams(
+            "from" to dateFrom.format(formatter),
+            "to"   to dateTo.format(formatter)
+        ).toRequest()
+    )
+suspend fun OkHttpClient.getYearTimeTable(year: Int = Calendar.getInstance().getCurrentYear()): BodyResponse<Week> {
 
-    suspend fun getPraisesAndImprovements(): PraisesAndImprovements {
-        return apiCall("/m/evaluations?filter=future")
-    }
+    val c = Calendar.getInstance()
 
-    suspend fun getGrades(subjectId: String): Subject {
-        return apiCall("/m/grades/classes/$subjectId")
-    }
+    c.set(year, 7, 25)
+    val from = LocalDate.from(c.time.toInstant())
+    c.set(year + 1, 7, 31)
+    val to = LocalDate.from(c.time.toInstant())
 
-    suspend fun getTimeTable(dateFrom: Date, dateTo: Date): Week {
-        return apiCall(
-            "/m/timetable/weekly",
-            listOf(
-                "from" to sdf.format(dateFrom),
-                "to" to sdf.format(dateTo)
-            )
-        )
-    }
+    return getTimeTable(from, to)
 
-    suspend fun getYearTimeTable(year: Int = Calendar.getInstance().getCurrentYear()): Week {
-
-        val c = Calendar.getInstance()
-
-        c.set(year, 7, 25)
-        val from = c.time
-        c.set(year + 1, 7, 31)
-        val to = c.time
-
-        return getTimeTable(from, to)
-
-    }
-
-    suspend fun getLatestGrades(): List<Subject> {
-        val ids = getSubjectIds()
-        val subjects = ArrayList<Subject>()
-        for (id in ids) {
-            val data = getGrades(id.toString())
-            subjects.add(data)
-        }
-        return subjects
-    }
-
-    /**
-     * Returns a Map<String, String> containing subject to color mapping
-     */
-    suspend fun getSubjectColors(): Map<String, String> {
-        val year = getYearTimeTable()
-        val colors = HashMap<String, String>()
-        year.schoolHourEvents.forEach { colors[it.subject.id.toString()] = it.color }
-        return colors
-    }
-
-    private suspend fun getSubjectIds(): Set<Int> {
-        val week = getYearTimeTable()
-        val ids = week.schoolHourEvents.map { it.subject.id }
-        return ids.toSet()
-    }
-
-    /**
-     * Returns a JSON serialized object from a specified sub-url call
-     */
-    private suspend inline fun <reified T> apiCall(
-        url: String,
-        params: List<Pair<String, String>> = emptyList()
-    ) : T {
-        return httpClient.get(
-            if (params.isEmpty()) "$URL$url"
-            else "$URL$url?${params.formUrlEncode()}"
-        ) {
-            headers {
-                append("x-child-id", child)
+}
+suspend fun OkHttpClient.getLatestGrades(): BatchResponse<Subject> =
+    batchAwait(
+        *getSubjectIds().let {
+            if (it.failed) {
+                null
+            } else {
+                val ids = it.body()!!
+                ids.map { id -> "$URL/grades/classes/$id".toRequest() }
             }
+        }?.toTypedArray() ?: emptyArray()
+    )
+
+/**
+ * Returns a Map<String, String> containing subject to color mapping
+ */
+suspend fun OkHttpClient.getSubjectColors(): BodyResponse<Map<String, String>> {
+    val yearResponse = getYearTimeTable()
+
+    return BodyResponse(yearResponse.response) {
+        if (!yearResponse.failed)
+            yearResponse.body()!!
+                .schoolHourEvents
+                .map { it.subject.id.toString() to it.color }
+                .toMap()
+        else null
+    }
+}
+
+private suspend fun OkHttpClient.getSubjectIds(): BodyResponse<Set<Int>> {
+    val week = getYearTimeTable()
+    return BodyResponse(week.response) {
+        if (week.failed) {
+            null
+        } else {
+            week.body()!!.schoolHourEvents.map { it.subject.id }.toSet()
         }
     }
-
 }
 

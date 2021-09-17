@@ -1,30 +1,43 @@
 package com.siggsy.cvek.utils.network
 
 import android.content.Context
+import android.util.Log
 import com.siggsy.cvek.data.easistent.*
 import com.siggsy.cvek.utils.decodeAccessJWT
 import com.siggsy.cvek.utils.preferences.AuthPreferences
 import com.siggsy.cvek.utils.preferences.User
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.*
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resumeWithException
 
-internal suspend fun OkHttpClient.execute(
+suspend fun OkHttpClient.execute(
     request: Request,
-): Response = suspendCancellableCoroutine { continuation ->
-    val call = newCall(request)
+): Response = withContext(Dispatchers.IO) {
+    suspendCancellableCoroutine { continuation ->
+        val call = newCall(request)
 
-    call.enqueue(OkHttpCallback(continuation))
+        call.enqueue(OkHttpCallback(continuation))
 
-    continuation.invokeOnCancellation {
-        call.cancel()
+        continuation.invokeOnCancellation {
+            call.cancel()
+        }
     }
 }
+
+suspend inline fun <reified T> OkHttpClient.await(
+    request: Request
+) = execute(request).let { BodyResponse<T>(it) { it.decodeJson() } }
+
+suspend inline fun <reified T> OkHttpClient.batchAwait(
+    vararg requests: Request,
+) = BatchResponse(
+    withContext(Dispatchers.IO) {
+        requests.map { async { await<T>(it) } }
+    }.map { it.await() }
+)
 
 private class OkHttpCallback(
     private val continuation: CancellableContinuation<Response>
@@ -33,11 +46,9 @@ private class OkHttpCallback(
         if (continuation.isCancelled) {
             return
         }
-
         continuation.resumeWithException(e)
     }
 
-    @ExperimentalCoroutinesApi
     override fun onResponse(call: Call, response: Response) {
         if (!call.isCanceled()) {
             continuation.resumeWith(Result.success(response))
@@ -53,7 +64,7 @@ fun OkHttpClient.Builder.default() = apply {
 }
 
 fun OkHttpClient.Builder.logger(logLevel: HttpLoggingInterceptor.Level) = apply {
-    addInterceptor(HttpLoggingInterceptor().apply { level = logLevel })
+    addNetworkInterceptor(HttpLoggingInterceptor().apply { level = logLevel })
 }
 
 fun OkHttpClient.Builder.auth(context: Context) = apply {
@@ -64,9 +75,10 @@ fun OkHttpClient.Builder.auth(context: Context) = apply {
         val userAuth = authPref.currentUser
         val accessJwt = userAuth.authToken.decodeAccessJWT()
         if (accessJwt?.isExpired == true) {
+            Log.i("Test", "token expired\ntoken: $accessJwt")
             // Request new access token.
             val response = chain.proceed(Request.Builder()
-                .defaultHeaders()
+                .defaultHeaders(authRequest = true)
                 .url(REFRESH_TOKEN.toHttpUrl())
                 .post(RefreshRequest(userAuth.refreshToken))
                 .build())
@@ -81,6 +93,7 @@ fun OkHttpClient.Builder.auth(context: Context) = apply {
         }
 
         return@addInterceptor chain.proceed(request.newBuilder()
+            .defaultHeaders()
             .authHeaders(authPref.currentUserId, authPref.currentUser.authToken)
             .build())
     }

@@ -1,9 +1,7 @@
 package com.siggsy.cvek
 
 import android.app.Application
-import com.siggsy.cvek.data.easistent.EasistentApi
 import com.siggsy.cvek.utils.network.auth
-import com.siggsy.cvek.utils.network.build
 import com.siggsy.cvek.utils.network.default
 import com.siggsy.cvek.utils.network.logger
 import okhttp3.OkHttpClient
@@ -11,8 +9,7 @@ import okhttp3.logging.HttpLoggingInterceptor.*
 
 class CvekApp : Application() {
 
-    private lateinit var httpClient: OkHttpClient
-    private lateinit var api: EasistentApi
+    lateinit var httpClient: OkHttpClient
 
     override fun onCreate() {
         super.onCreate()
@@ -22,6 +19,5 @@ class CvekApp : Application() {
             .logger(Level.BODY)
             .auth(this@CvekApp)
             .build()
-
     }
 }

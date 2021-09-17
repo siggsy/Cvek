@@ -1,8 +1,10 @@
 package com.siggsy.cvek.utils
 
 import android.util.Base64
+import kotlinx.serialization.Serializable
 import java.time.ZoneId
 
+@Serializable
 data class JWT(
     val consumerKey: String,
     val userId: String,
@@ -17,7 +19,7 @@ data class JWT(
             .toDate()
             .atZone(ZoneId.systemDefault())
             .toInstant()
-            .toEpochMilli() >= System.currentTimeMillis()
+            .toEpochMilli() + (ttl * 1000) <= System.currentTimeMillis()
 
 }
 
