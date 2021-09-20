@@ -7,10 +7,16 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.siggsy.cvek.utils.toJson
 
+/**
+ * Already defined application/json content type for use on all requests
+ */
 val jsonMedia = "application/json".toMediaType()
 
+/**
+ * Apply default headers to the request required by the API
+ * @param authRequest - boolean to indicate if request is for authentication purposes
+ */
 fun Request.Builder.defaultHeaders(authRequest: Boolean = false) = apply {
-    // Login requests require android platform
     val (platform, version) = if (authRequest) {
         Pair("android","99999")
     } else {
@@ -25,11 +31,20 @@ fun Request.Builder.defaultHeaders(authRequest: Boolean = false) = apply {
     header("x-app-name", "family")
 }
 
+/**
+ * Authentication headers required by auth blocked API requests
+ * @param child - value in 'x-child-id' header
+ * @param token - value in 'authorization' header. Bearer is prepended
+ */
 fun Request.Builder.authHeaders(child: String, token: String) = apply {
     header("x-child-id", child)
     header("authorization", "Bearer $token")
 }
 
+/**
+ * Convenient function for converting string to http URL for OkHttp requests
+ * @param params - pair of key value to encode in url; eg. ?key1=value1&key2=value2
+ */
 fun String.toHttpUrl(vararg params: Pair<String, String>): HttpUrl {
     val builder = toHttpUrl().newBuilder()
     params.forEach { (key, value) ->
@@ -38,15 +53,11 @@ fun String.toHttpUrl(vararg params: Pair<String, String>): HttpUrl {
     return builder.build()
 }
 
-fun String.toRequest(build: Request.Builder.() -> Unit = { }) =
-    Request.Builder()
-        .url(this)
-        .apply(build)
-        .build()
-
-fun String.addParams(vararg params: Pair<String, String>) =
-    "$this?${params.joinToString(separator = "&") { (key, value) -> "$key=$value" }}"
-
+/**
+ * Extension function for the builder for creating post requests with json
+ * request body
+ * @param body - json serializable object to be parsed to RequestBody.
+ */
 inline fun <reified T> Request.Builder.post(body: T) = apply {
     post(body.toJson().toRequestBody(jsonMedia))
 }

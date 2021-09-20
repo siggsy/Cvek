@@ -7,11 +7,22 @@ import xyz.siggsy.cvek.utils.toJson
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-
+/**
+ * Open class for overriding when creating new shared preferences
+ * @param context - context for acquiring shared preferences
+ * @param key - uniquely identifying key for shared preferences
+ */
 open class CvekPreferences(context: Context, key: String) {
     val sharedPreferences: SharedPreferences = context.getSharedPreferences(key, Context.MODE_PRIVATE)
 }
 
+/**
+ * Delegate for creating var field instead of getters and setters
+ * @param T - type to store/get
+ * @param sharedPreferences - shared preferences to use
+ * @param store - lambda for refactoring T types to correct format
+ * @param get - lambda for acquiring T types
+ */
 open class PreferencesDelegate<T>(
     private val sharedPreferences: SharedPreferences,
     val store: SharedPreferences.Editor.(T) -> Unit,
@@ -29,6 +40,10 @@ open class PreferencesDelegate<T>(
     }
 }
 
+/**
+ * String preference delegate
+ * @param key - unique key for preference
+ */
 fun CvekPreferences.stringPreference(key: String) =
     PreferencesDelegate(
         sharedPreferences,
@@ -36,6 +51,10 @@ fun CvekPreferences.stringPreference(key: String) =
         { this.getString(key, "") ?: "" }
     )
 
+/**
+ * Boolean preference delegate
+ * @param key - unique key for preference
+ */
 fun CvekPreferences.booleanPreference(key: String) =
     PreferencesDelegate(
         sharedPreferences,
@@ -43,9 +62,14 @@ fun CvekPreferences.booleanPreference(key: String) =
         { this.getBoolean(key, false) }
     )
 
-inline fun <reified T> CvekPreferences.serializablePreference(key: String, crossinline default: () -> T) =
+/**
+ * Serializable preference delegate
+ * @param key - unique key for preference
+ * @param default - default value for unset values
+ */
+inline fun <reified T> CvekPreferences.serializablePreference(key: String, default: T) =
     PreferencesDelegate(
         sharedPreferences,
         { this.putString(key, it.toJson()) },
-        { this.getString(key, null)?.decodeJson() ?: default() }
+        { this.getString(key, null)?.decodeJson() ?: default }
     )

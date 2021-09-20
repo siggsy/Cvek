@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.*
 import okhttp3.*
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import xyz.siggsy.cvek.data.RefreshRequest
 import xyz.siggsy.cvek.data.RefreshResponse
@@ -86,6 +87,7 @@ fun OkHttpClient.Builder.default() = apply {
 
 /**
  * Logger for okHttp client
+ * @param logLevel - Logging level to apply to the HttpLoggingInterceptor
  */
 fun OkHttpClient.Builder.logger(logLevel: HttpLoggingInterceptor.Level) = apply {
     addNetworkInterceptor(HttpLoggingInterceptor().apply { level = logLevel })
@@ -103,7 +105,7 @@ fun OkHttpClient.Builder.auth(context: Context, refreshUrl: String) = apply {
         val request = chain.request()
 
         val userAuth = authPref.currentUser
-        val accessJwt = userAuth.authToken.decodeAccessJWT()
+        val accessJwt = userAuth?.authToken?.decodeAccessJWT()
         if (accessJwt?.isExpired == true) {
             Log.i("Test", "token expired\ntoken: $accessJwt")
             // Request new access token.
@@ -116,15 +118,25 @@ fun OkHttpClient.Builder.auth(context: Context, refreshUrl: String) = apply {
             if (response.isSuccessful) {
                 // Save tokens to preferences.
                 val refreshResponse: RefreshResponse = response.decodeJson()
-                authPref.currentUser = User(refreshResponse.accessToken.token, refreshResponse.refreshToken)
+                authPref.users = authPref.users.toMutableMap().also {
+                    it[authPref.currentUserId] = User(
+                        refreshResponse.accessToken.token,
+                        refreshResponse.refreshToken
+                    )
+                }
             } else {
                 return@addInterceptor response
             }
+        } else if (accessJwt == null) {
+            return@addInterceptor Response.Builder()
+                .code(401)
+                .body("{}".toResponseBody())
+                .build()
         }
 
         return@addInterceptor chain.proceed(request.newBuilder()
             .defaultHeaders()
-            .authHeaders(authPref.currentUserId, authPref.currentUser.authToken)
+            .authHeaders(authPref.currentUserId, authPref.currentUser!!.authToken)
             .build())
     }
 }

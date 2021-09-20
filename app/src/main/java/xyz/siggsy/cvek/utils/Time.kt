@@ -5,6 +5,10 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+/**
+ * Get current school year; eg. int 2021 corresponds to a year 2021/2022
+ * @receiver - calendar instance to use
+ */
 fun Calendar.getCurrentYear(): Int {
     var year: Int = get(Calendar.YEAR)
     set(year, 7, 25, 0, 0, 0)
@@ -13,6 +17,12 @@ fun Calendar.getCurrentYear(): Int {
     }
     return year
 }
+
+/**
+ * Get current week date limits
+ * @receiver - calendar instance to use
+ * @return - date (min: monday, max: saturday) pair
+ */
 fun Calendar.getCurrentWeek(): Pair<Date, Date> {
     set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
     val mon = time
@@ -22,11 +32,11 @@ fun Calendar.getCurrentWeek(): Pair<Date, Date> {
 
     return Pair(mon, sat)
 }
-fun convertDate(dateString: String): Date {
-    val dateOnly = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    return dateOnly.parse(dateString)!!
-}
 
-val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssx")
-fun String.toDate(): LocalDateTime =
-    LocalDateTime.parse(this, formatter)
+/**
+ * Extension function for decoding date string
+ * @receiver - string to decode
+ * @return - string decoded to LocalDateTime
+ */
+fun String.toDate(format: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE): LocalDateTime =
+    LocalDateTime.parse(this, format)

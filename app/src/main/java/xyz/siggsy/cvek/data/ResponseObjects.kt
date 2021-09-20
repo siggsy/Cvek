@@ -7,7 +7,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 /**
- * File for JSON to Kotlin object mapping
+ * File for JSON to Kotlin response object mapping
  */
 
 @Serializable
