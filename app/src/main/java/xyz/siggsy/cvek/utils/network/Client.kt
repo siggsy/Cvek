@@ -109,11 +109,10 @@ fun OkHttpClient.Builder.auth(context: Context, refreshUrl: String) = apply {
         if (accessJwt?.isExpired == true) {
             Log.i("Test", "token expired\ntoken: $accessJwt")
             // Request new access token.
-            val response = chain.proceed(Request.Builder()
-                .defaultHeaders(authRequest = true)
-                .url(refreshUrl.toHttpUrl())
-                .post(RefreshRequest(userAuth.refreshToken))
-                .build())
+            val response = chain.proceed(refreshUrl.toRequest {
+                defaultHeaders(authRequest = true)
+                post(RefreshRequest(userAuth.refreshToken))
+            })
 
             if (response.isSuccessful) {
                 // Save tokens to preferences.

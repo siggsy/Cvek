@@ -42,16 +42,21 @@ fun Request.Builder.authHeaders(child: String, token: String) = apply {
 }
 
 /**
- * Convenient function for converting string to http URL for OkHttp requests
+ * Function for creating Request from url string
+ * @param build - block for additional builder modification
+ */
+fun String.toRequest(build: Request.Builder.() -> Unit = { }) =
+    Request.Builder()
+        .url(this)
+        .apply(build)
+        .build()
+
+/**
+ * Encode params to url string
  * @param params - pair of key value to encode in url; eg. ?key1=value1&key2=value2
  */
-fun String.toHttpUrl(vararg params: Pair<String, String>): HttpUrl {
-    val builder = toHttpUrl().newBuilder()
-    params.forEach { (key, value) ->
-        builder.addQueryParameter(key, value)
-    }
-    return builder.build()
-}
+fun String.addParams(vararg params: Pair<String, String>) =
+    "$this?${params.joinToString(separator = "&") { (key, value) -> "$key=$value" }}"
 
 /**
  * Extension function for the builder for creating post requests with json
