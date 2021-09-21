@@ -18,7 +18,9 @@ class LoginModel : ViewModel() {
     var password = MutableLiveData("")
     val error = MutableLiveData<String>(null)
 
-    val loginData = MutableLiveData<LoginResponse>()
+    val loginData by lazy {
+        MutableLiveData<LoginResponse>()
+    }
 
     fun login() = viewModelScope.launch {
         val http = OkHttpClient.Builder()
