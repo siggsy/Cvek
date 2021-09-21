@@ -14,7 +14,7 @@ val jsonMedia = "application/json".toMediaType()
 
 /**
  * Apply default headers to the request required by the API
- * @param authRequest - boolean to indicate if request is for authentication purposes
+ * @param authRequest boolean to indicate if request is for authentication purposes
  */
 fun Request.Builder.defaultHeaders(authRequest: Boolean = false) = apply {
     val (platform, version) = if (authRequest) {
@@ -33,8 +33,8 @@ fun Request.Builder.defaultHeaders(authRequest: Boolean = false) = apply {
 
 /**
  * Authentication headers required by auth blocked API requests
- * @param child - value in 'x-child-id' header
- * @param token - value in 'authorization' header. Bearer is prepended
+ * @param child value in 'x-child-id' header
+ * @param token value in 'authorization' header. Bearer is prepended
  */
 fun Request.Builder.authHeaders(child: String, token: String) = apply {
     header("x-child-id", child)
@@ -43,7 +43,7 @@ fun Request.Builder.authHeaders(child: String, token: String) = apply {
 
 /**
  * Function for creating Request from url string
- * @param build - block for additional builder modification
+ * @param build block for additional builder modification
  */
 fun String.toRequest(build: Request.Builder.() -> Unit = { }) =
     Request.Builder()
@@ -53,7 +53,7 @@ fun String.toRequest(build: Request.Builder.() -> Unit = { }) =
 
 /**
  * Encode params to url string
- * @param params - pair of key value to encode in url; eg. ?key1=value1&key2=value2
+ * @param params pair of key value to encode in url; eg. ?key1=value1&key2=value2
  */
 fun String.addParams(vararg params: Pair<String, String>) =
     "$this?${params.joinToString(separator = "&") { (key, value) -> "$key=$value" }}"
@@ -61,7 +61,7 @@ fun String.addParams(vararg params: Pair<String, String>) =
 /**
  * Extension function for the builder for creating post requests with json
  * request body
- * @param body - json serializable object to be parsed to RequestBody.
+ * @param body json serializable object to be parsed to RequestBody.
  */
 inline fun <reified T> Request.Builder.post(body: T) = apply {
     post(body.toJson().toRequestBody(jsonMedia))

@@ -17,8 +17,8 @@ import kotlin.coroutines.resumeWithException
 
 /**
  * Wrapper function for executing okhttp in kotlin coroutines
- * @param request - Request to execute
- * @return - OkHttp Response object
+ * @param request to execute
+ * @return OkHttp Response object
  */
 suspend fun OkHttpClient.execute(
     request: Request,
@@ -52,8 +52,8 @@ private class OkHttpCallback(
 
 /**
  * OkHttpClient.execute() wrapper for requests that contain json in body
- * @param request - Request to execute
- * @return - BodyResponse with generified json parser
+ * @param request Request to execute
+ * @return BodyResponse with generified json parser
  */
 suspend inline fun <reified T> OkHttpClient.jsonRequest(
     request: Request
@@ -61,8 +61,8 @@ suspend inline fun <reified T> OkHttpClient.jsonRequest(
 
 /**
  * Executes multiple requests and awaits their result
- * @param requests - vararg of request objects to execute
- * @return - BatchResponse containing all results
+ * @param requests vararg of request objects to execute
+ * @return BatchResponse containing all results
  */
 suspend inline fun <reified T> OkHttpClient.batchJsonRequest(
     vararg requests: Request,
@@ -87,7 +87,7 @@ fun OkHttpClient.Builder.default() = apply {
 
 /**
  * Logger for okHttp client
- * @param logLevel - Logging level to apply to the HttpLoggingInterceptor
+ * @param logLevel to apply to the HttpLoggingInterceptor
  */
 fun OkHttpClient.Builder.logger(logLevel: HttpLoggingInterceptor.Level) = apply {
     addNetworkInterceptor(HttpLoggingInterceptor().apply { level = logLevel })
@@ -96,8 +96,8 @@ fun OkHttpClient.Builder.logger(logLevel: HttpLoggingInterceptor.Level) = apply 
 /**
  * Authentication interceptor that automatically requests for a new token when expired and adds
  * proper headers saved in shared preferences for auth calls
- * @param context - Context to use when acquiring shared preferences
- * @param refreshUrl - Url to use when refreshing JWT tokens
+ * @param context to use when acquiring shared preferences
+ * @param refreshUrl to use when refreshing JWT tokens
  */
 fun OkHttpClient.Builder.auth(context: Context, refreshUrl: String) = apply {
     val authPref = AuthPreferences(context)

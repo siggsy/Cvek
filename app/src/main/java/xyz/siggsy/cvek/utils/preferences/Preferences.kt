@@ -9,8 +9,8 @@ import kotlin.reflect.KProperty
 
 /**
  * Open class for overriding when creating new shared preferences
- * @param context - context for acquiring shared preferences
- * @param key - uniquely identifying key for shared preferences
+ * @param context for acquiring shared preferences
+ * @param key for shared preferences
  */
 open class CvekPreferences(context: Context, key: String) {
     val sharedPreferences: SharedPreferences = context.getSharedPreferences(key, Context.MODE_PRIVATE)
@@ -18,10 +18,10 @@ open class CvekPreferences(context: Context, key: String) {
 
 /**
  * Delegate for creating var field instead of getters and setters
- * @param T - type to store/get
- * @param sharedPreferences - shared preferences to use
- * @param store - lambda for refactoring T types to correct format
- * @param get - lambda for acquiring T types
+ * @param T type to store/get
+ * @param sharedPreferences to use
+ * @param store lambda for refactoring T types to correct format
+ * @param get lambda for acquiring T types
  */
 open class PreferencesDelegate<T>(
     private val sharedPreferences: SharedPreferences,
@@ -42,7 +42,7 @@ open class PreferencesDelegate<T>(
 
 /**
  * String preference delegate
- * @param key - unique key for preference
+ * @param key for preference
  */
 fun CvekPreferences.stringPreference(key: String) =
     PreferencesDelegate(
@@ -53,7 +53,7 @@ fun CvekPreferences.stringPreference(key: String) =
 
 /**
  * Boolean preference delegate
- * @param key - unique key for preference
+ * @param key for preference
  */
 fun CvekPreferences.booleanPreference(key: String) =
     PreferencesDelegate(
@@ -64,8 +64,8 @@ fun CvekPreferences.booleanPreference(key: String) =
 
 /**
  * Serializable preference delegate
- * @param key - unique key for preference
- * @param default - default value for unset values
+ * @param key for preference
+ * @param default value for unset values
  */
 inline fun <reified T> CvekPreferences.serializablePreference(key: String, default: T) =
     PreferencesDelegate(

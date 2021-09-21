@@ -12,7 +12,7 @@ data class User(
 /**
  * Auth preferences class containing delegates for manipulating with shared preferences
  * related to authentication for the API
- * @param context - context for acquiring preferences
+ * @param context for acquiring preferences
  */
 class AuthPreferences(context: Context) : CvekPreferences(context, "AUTH") {
     var currentUserId: String by stringPreference("current_user")

@@ -29,8 +29,8 @@ data class JWT(
 /**
  * Object for decoding JWT
  * TODO: use android library for JWT
- * @receiver - string to decode to JWT
- * @return - nullable JWT data object
+ * @receiver string to decode to JWT
+ * @return nullable JWT data object
  */
 fun String.decodeAccessJWT(): JWT? {
     return if (matches(Regex("[\\w-]+\\.[\\w-]+\\.[\\w-]+"))) {

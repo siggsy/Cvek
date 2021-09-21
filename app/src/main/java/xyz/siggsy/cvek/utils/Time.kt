@@ -7,7 +7,7 @@ import java.util.*
 
 /**
  * Get current school year; eg. int 2021 corresponds to a year 2021/2022
- * @receiver - calendar instance to use
+ * @receiver calendar instance to use
  */
 fun Calendar.getCurrentYear(): Int {
     var year: Int = get(Calendar.YEAR)
@@ -20,8 +20,8 @@ fun Calendar.getCurrentYear(): Int {
 
 /**
  * Get current week date limits
- * @receiver - calendar instance to use
- * @return - date (min: monday, max: saturday) pair
+ * @receiver calendar instance to use
+ * @return date (min: monday, max: saturday) pair
  */
 fun Calendar.getCurrentWeek(): Pair<Date, Date> {
     set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
@@ -35,8 +35,8 @@ fun Calendar.getCurrentWeek(): Pair<Date, Date> {
 
 /**
  * Extension function for decoding date string
- * @receiver - string to decode
- * @return - string decoded to LocalDateTime
+ * @receiver string to decode
+ * @return string decoded to LocalDateTime
  */
 fun String.toDate(format: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE): LocalDateTime =
     LocalDateTime.parse(this, format)

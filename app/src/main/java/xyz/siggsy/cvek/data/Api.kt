@@ -59,7 +59,7 @@ suspend fun OkHttpClient.getTimeTable(dateFrom: LocalDate, dateTo: LocalDate): B
 
 /**
  * Get timetable from the entire school [year]
- * @param year - year integer representing the current school year; 2021 corresponds to year 2021/2022
+ * @param year integer representing the current school year; 2021 corresponds to year 2021/2022
  */
 suspend fun OkHttpClient.getYearTimeTable(year: Int = Calendar.getInstance().getCurrentYear()): BodyResponse<Week> {
     val c = Calendar.getInstance()
