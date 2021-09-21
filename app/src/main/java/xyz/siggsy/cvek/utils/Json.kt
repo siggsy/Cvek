@@ -1,16 +1,21 @@
 package xyz.siggsy.cvek.utils
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-val json = Json { ignoreUnknownKeys = true }
+val json = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+}
 
 /**
  * Function for encoding serializable object to string
  * @receiver - object to parse
  * @return - parsed object as string
  */
+@ExperimentalSerializationApi
 inline fun <reified T> T.toJson(): String = json.encodeToString(this)
 
 /**
@@ -18,4 +23,5 @@ inline fun <reified T> T.toJson(): String = json.encodeToString(this)
  * @receiver - string to decode
  * @return - decoded object as T
  */
+@ExperimentalSerializationApi
 inline fun <reified T> String.decodeJson(): T = json.decodeFromString(this)

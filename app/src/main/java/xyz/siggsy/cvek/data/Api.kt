@@ -14,14 +14,12 @@ const val REFRESH_TOKEN = "$URL/refresh_token"
 private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 /**
- * Request for access and refresh tokens
- * @param username - part of credentials to use for login
- * @param password - part of credentials to use for login
+ * Request for access and refresh tokens using [username] and [password]
  */
 suspend fun OkHttpClient.login(username: String, password: String): BodyResponse<LoginResponse> =
     jsonRequest(LOGIN.toRequest {
         defaultHeaders(authRequest = true)
-        post(LoginRequest(username, password, listOf("child")))
+        post(LoginRequest(username, password))
     })
 
 /**
@@ -43,16 +41,13 @@ suspend fun OkHttpClient.getPraisesAndImprovements(): BodyResponse<PraisesAndImp
     jsonRequest("$URL/praises_and_improvements".toRequest())
 
 /**
- * Get child recently received grade for the specified object.
- * @param subjectId - id of the subject to receive the grades
+ * Get child recently received grade for the specified object using [subjectId].
  */
 suspend fun OkHttpClient.getGrades(subjectId: String): BodyResponse<Subject> =
     jsonRequest("$URL/grades/classes/$subjectId".toRequest())
 
 /**
- * Get timetable in the specified time window
- * @param dateFrom - first date (inclusive)
- * @param dateTo - last date (inclusive)
+ * Get timetable in the specified time window defined by [dateFrom] and [dateTo] inclusive
  */
 suspend fun OkHttpClient.getTimeTable(dateFrom: LocalDate, dateTo: LocalDate): BodyResponse<Week> =
     jsonRequest(
@@ -63,7 +58,7 @@ suspend fun OkHttpClient.getTimeTable(dateFrom: LocalDate, dateTo: LocalDate): B
     )
 
 /**
- * Get timetable from the entire school year
+ * Get timetable from the entire school [year]
  * @param year - year integer representing the current school year; 2021 corresponds to year 2021/2022
  */
 suspend fun OkHttpClient.getYearTimeTable(year: Int = Calendar.getInstance().getCurrentYear()): BodyResponse<Week> {

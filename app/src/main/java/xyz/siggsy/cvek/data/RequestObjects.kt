@@ -16,5 +16,5 @@ data class RefreshRequest(
 data class LoginRequest(
     @SerialName("username") val username: String,
     @SerialName("password") val password: String,
-    @SerialName("supported_user_types") val supportedUserTypes: List<String>
+    @SerialName("supported_user_types") val supportedUserTypes: List<String> = listOf("child")
 )
