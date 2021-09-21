@@ -15,7 +15,7 @@ val json = Json {
  * @receiver - object to parse
  * @return - parsed object as string
  */
-@ExperimentalSerializationApi
+@OptIn(ExperimentalSerializationApi::class)
 inline fun <reified T> T.toJson(): String = json.encodeToString(this)
 
 /**
@@ -23,5 +23,5 @@ inline fun <reified T> T.toJson(): String = json.encodeToString(this)
  * @receiver - string to decode
  * @return - decoded object as T
  */
-@ExperimentalSerializationApi
+@OptIn(ExperimentalSerializationApi::class)
 inline fun <reified T> String.decodeJson(): T = json.decodeFromString(this)
