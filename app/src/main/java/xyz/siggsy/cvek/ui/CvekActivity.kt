@@ -5,6 +5,6 @@ import xyz.siggsy.cvek.CvekApplication
 
 open class CvekActivity : AppCompatActivity() {
 
-    val http get() = (application as CvekApplication).http
+    val repo get() = (application as CvekApplication).repository
 
 }

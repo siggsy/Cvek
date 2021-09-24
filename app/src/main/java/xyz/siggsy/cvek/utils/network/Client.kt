@@ -49,7 +49,6 @@ private class OkHttpCallback(
     }
 }
 
-
 /**
  * OkHttpClient.execute() wrapper for requests that contain json in body
  * @param request Request to execute
@@ -58,19 +57,6 @@ private class OkHttpCallback(
 suspend inline fun <reified T> OkHttpClient.jsonRequest(
     request: Request
 ) = execute(request).let { BodyResponse<T>(it) { it.decodeJson() } }
-
-/**
- * Executes multiple requests and awaits their result
- * @param requests vararg of request objects to execute
- * @return BatchResponse containing all results
- */
-suspend inline fun <reified T> OkHttpClient.batchJsonRequest(
-    vararg requests: Request,
-) = BatchResponse(
-    withContext(Dispatchers.IO) {
-        requests.map { async { jsonRequest<T>(it) } }
-    }.map { it.await() }
-)
 
 /**
  * Default okHttp builder settings

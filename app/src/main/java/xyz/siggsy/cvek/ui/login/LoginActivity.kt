@@ -23,18 +23,18 @@ class LoginActivity : CvekActivity() {
         binding.lifecycleOwner = this
 
         loginModel.loginData.observe(this) {
-            if (it != null) {
-                val userId = it.user.id.toString()
-                val accessToken = it.accessToken.token
-                val refreshToken = it.refreshToken
-                val authPref = AuthPreferences(this)
-
-                authPref.currentUserId = userId
-                authPref.users = authPref.users + (userId to User(accessToken, refreshToken))
-
-                startActivity(Intent(this, MainActivity::class.java))
+            it?.apply {
+                repo.saveUser(
+                    user.id.toString(),
+                    User(
+                        accessToken.token,
+                        refreshToken
+                    )
+                )
+                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                 finish()
             }
         }
     }
+
 }

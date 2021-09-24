@@ -2,6 +2,7 @@ package xyz.siggsy.cvek.utils.network
 
 import okhttp3.Response
 import xyz.siggsy.cvek.data.ErrorResponse
+import xyz.siggsy.cvek.data.apiError
 import xyz.siggsy.cvek.utils.decodeJson
 
 /**
@@ -18,10 +19,17 @@ inline fun <reified T> Response.decodeJson(): T =
  */
 data class BodyResponse<T>(
     val response: Response,
-    val body: () -> T?,
+    val body: () -> T,
 ) {
     val error: () -> ErrorResponse = response::decodeJson
     val isSuccessful get() = response.isSuccessful
+    fun bodyOrThrow(): T {
+        if (isSuccessful) {
+            return body()
+        } else {
+            throw apiError(this)
+        }
+    }
 }
 
 /**
