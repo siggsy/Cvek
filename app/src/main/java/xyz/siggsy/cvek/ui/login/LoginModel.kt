@@ -30,16 +30,10 @@ class LoginModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun login() = viewModelScope.launch {
-        repo.getUserAuth(username.value!!, password.value!!)
-            .catch {
-                error.postValue(when (it) {
-                    is ApiError -> it.response.error.userMessage
-                    else -> "Nekaj je šlo narobe"
-                })
-            }
-            .collect {
-                loginData.postValue(it)
-            }
+        val auth = runCatching { repo.getUserAuth(username.value!!, password.value!!) }.getOrNull()
+        if (auth != null) {
+            loginData.postValue(auth)
+        }
     }
 
 }

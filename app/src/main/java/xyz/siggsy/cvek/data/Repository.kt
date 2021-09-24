@@ -1,10 +1,9 @@
 package xyz.siggsy.cvek.data
 
 import android.content.Context
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor.*
 import xyz.siggsy.cvek.utils.getCurrentYear
@@ -22,15 +21,16 @@ class Repository(
     private val authPref = AuthPreferences(context)
 
     // Remote and local
-    suspend fun getUserAuth(username: String, password: String) = flow {
+    suspend fun getUserAuth(username: String, password: String): LoginResponse {
         val loginHttp = OkHttpClient.Builder()
             .default()
             .logger(Level.BODY)
             .build()
 
         val res = loginHttp.login(username, password)
-        emit(res.bodyOrThrow())
+        return res.bodyOrThrow()
     }
+
 
     fun saveUser(id: String, user: User) {
         authPref.users += (id to user)
@@ -42,25 +42,22 @@ class Repository(
     }
 
     // Remote
-    suspend fun getAbsences(): Flow<Absences> = flow {
-        val res = http.getAbsences()
-        emit(res.bodyOrThrow())
-    }
+    suspend fun getAbsences() =
+        http.getAbsences().bodyOrThrow()
 
-    suspend fun getFutureEvaluations() = flow {
-        val res = http.getFutureEvaluations()
-        emit(res.bodyOrThrow())
-    }
+    suspend fun getFutureEvaluations() =
+        http.getFutureEvaluations().bodyOrThrow()
 
-    suspend fun getPraisesAndImprovements() = flow {
-        val res = http.getPraisesAndImprovements()
-        emit(res.bodyOrThrow())
-    }
+    suspend fun getPraisesAndImprovements() =
+        http.getPraisesAndImprovements().bodyOrThrow()
 
-    suspend fun getTimeTable(dateFrom: LocalDate, dateTo: LocalDate) = flow {
-        val res = http.getTimeTable(dateFrom, dateTo)
-        emit(res.bodyOrThrow())
-    }
+    suspend fun getTimeTable(
+        dateFrom: LocalDate,
+        dateTo: LocalDate
+    ) = http.getTimeTable(dateFrom, dateTo).bodyOrThrow()
+
+    suspend fun getGrades(subjectId: String) =
+        http.getGrades(subjectId).bodyOrThrow()
 
     /**
      * Get timetable from the entire school [year]
@@ -75,26 +72,22 @@ class Repository(
     /**
      * Get all subject IDs from the current running week; used for updating recent grades.
      */
-    suspend fun getSubjectIds() = getYearTimeTable()
-        .map { year ->
-            year.schoolHourEvents
-                .map { it.subject.id }
-                .toSet()
-        }
+    suspend fun getSubjectIds() =
+        getYearTimeTable()
+            .schoolHourEvents
+            .map { it.subject.id }
+            .toSet()
 
-    suspend fun getSubjectColors() = getYearTimeTable()
-        .map { year ->
-            year
-                .schoolHourEvents
-                .map { it.subject.id.toString() to it.color }
-                .toMap()
-        }
+    suspend fun getSubjectColors() =
+        getYearTimeTable()
+            .schoolHourEvents
+            .map { it.subject.id.toString() to it.color }
+            .toMap()
 
-    suspend fun getLatestGrades() = getSubjectIds().map {
-        it.map { id -> http
-            .jsonRequest<Subject>("$URL/grades/classes/$id".toRequest())
-            .bodyOrThrow()
-        }
+    suspend fun getLatestGrades() = withContext(Dispatchers.IO + Job()) {
+        return@withContext awaitAll(*getSubjectIds().map { id ->
+            async { getGrades(id.toString()) }
+        }.toTypedArray())
     }
 
     // Local

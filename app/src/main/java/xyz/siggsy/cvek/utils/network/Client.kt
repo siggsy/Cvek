@@ -15,6 +15,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resumeWithException
 
+val okHttpJob = Job()
 /**
  * Wrapper function for executing okhttp in kotlin coroutines
  * @param request to execute
@@ -22,7 +23,7 @@ import kotlin.coroutines.resumeWithException
  */
 suspend fun OkHttpClient.execute(
     request: Request,
-): Response = withContext(Dispatchers.IO) {
+): Response = withContext(Dispatchers.IO + okHttpJob) {
     suspendCancellableCoroutine { continuation ->
         val call = newCall(request)
         call.enqueue(OkHttpCallback(continuation))
@@ -90,33 +91,33 @@ fun OkHttpClient.Builder.auth(context: Context, refreshUrl: String) = apply {
     addInterceptor { chain ->
         val request = chain.request()
 
-        val userAuth = authPref.currentUser
-        val accessJwt = userAuth?.authToken?.decodeAccessJWT()
-        if (accessJwt?.isExpired == true) {
-            Log.i("Test", "token expired\ntoken: $accessJwt")
-            // Request new access token.
-            val response = chain.proceed(refreshUrl.toRequest {
-                defaultHeaders(authRequest = true)
-                post(RefreshRequest(userAuth.refreshToken))
-            })
+        synchronized(this) {
+            val userAuth = authPref.currentUser
+            val accessJwt = userAuth?.authToken?.decodeAccessJWT()
+            if (accessJwt?.isExpired == true) {
+                Log.i("Test", "token expired\ntoken: $accessJwt")
+                // Request new access token.
+                val response = chain.proceed(refreshUrl.toRequest {
+                    defaultHeaders(authRequest = true)
+                    post(RefreshRequest(userAuth.refreshToken))
+                })
 
-            if (response.isSuccessful) {
-                // Save tokens to preferences.
-                val refreshResponse: RefreshResponse = response.decodeJson()
-                authPref.users = authPref.users.toMutableMap().also {
-                    it[authPref.currentUserId] = User(
-                        refreshResponse.accessToken.token,
-                        refreshResponse.refreshToken
-                    )
+                if (response.isSuccessful) {
+                    // Save tokens to preferences.
+                    val refreshResponse: RefreshResponse = response.decodeJson()
+                    authPref.users += (authPref.currentUserId to User(
+                            refreshResponse.accessToken.token,
+                            refreshResponse.refreshToken
+                        ))
+                } else {
+                    return@addInterceptor response
                 }
-            } else {
-                return@addInterceptor response
+            } else if (accessJwt == null) {
+                return@addInterceptor Response.Builder()
+                    .code(401)
+                    .body("{}".toResponseBody())
+                    .build()
             }
-        } else if (accessJwt == null) {
-            return@addInterceptor Response.Builder()
-                .code(401)
-                .body("{}".toResponseBody())
-                .build()
         }
 
         return@addInterceptor chain.proceed(request.newBuilder()
