@@ -1,7 +1,6 @@
 package xyz.siggsy.cvek
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor.*
 import xyz.siggsy.cvek.data.REFRESH_TOKEN
@@ -10,7 +9,6 @@ import xyz.siggsy.cvek.utils.network.auth
 import xyz.siggsy.cvek.utils.network.default
 import xyz.siggsy.cvek.utils.network.logger
 
-@HiltAndroidApp
 class CvekApplication : Application() {
 
     lateinit var repository: Repository
