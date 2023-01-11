@@ -1,3 +1,5 @@
+# Archive notice: moved to gitlab
+
 # Cvek
 Unofficial eAsistent open source android app
 
